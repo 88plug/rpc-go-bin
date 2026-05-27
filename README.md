@@ -3,8 +3,9 @@
 AUR package for [Intel's `rpc-go`](https://github.com/device-management-toolkit/rpc-go) — the Device Management Toolkit CLI for Intel AMT / vPro activation, configuration, and queries via `/dev/mei0` or network.
 
 [![AUR](https://img.shields.io/aur/version/rpc-go-bin?label=AUR&style=flat-square)](https://aur.archlinux.org/packages/rpc-go-bin)
-[![CI](https://img.shields.io/github/actions/workflow/status/88plug/rpc-go-bin/auto-update.yml?label=auto-update&style=flat-square)](https://github.com/88plug/rpc-go-bin/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/88plug/rpc-go-bin/auto-release.yml?label=auto-release&style=flat-square)](https://github.com/88plug/rpc-go-bin/actions)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square)](https://github.com/device-management-toolkit/rpc-go/blob/main/LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/88plug/rpc-go-bin)
 
 ## Install
 
