@@ -2,8 +2,7 @@ name: Auto-release
 
 # Tracks upstream device-management-toolkit/rpc-go.
 # Cron: daily check. Push: re-check on every main push.
-# When upstream tag != PKGBUILD pkgver: bump PKGBUILD + .SRCINFO, commit, tag v<ver>, push.
-# The tag push then triggers aur-deploy.yml.
+# When upstream tag != PKGBUILD pkgver: bump PKGBUILD + .SRCINFO, commit, tag v<ver>, dispatch aur-deploy.
 
 on:
   schedule:
@@ -14,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   release:
@@ -23,7 +23,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Compare upstream vs PKGBUILD
         id: compare
@@ -61,7 +60,7 @@ jobs:
           sed -i "s|releases/download/v.*/rpc_linux_x64|releases/download/v$NEW/rpc_linux_x64|" .SRCINFO
           sed -i "s/sha256sums_x86_64 = .*/sha256sums_x86_64 = $SHA/" .SRCINFO
 
-      - name: Commit + tag + push (triggers aur-deploy.yml)
+      - name: Commit + tag + push
         if: steps.compare.outputs.needs_update == 'true'
         run: |
           NEW="${{ steps.compare.outputs.upstream }}"
@@ -72,3 +71,9 @@ jobs:
           git tag "v$NEW"
           git push origin main
           git push origin "v$NEW"
+
+      - name: Dispatch AUR Deploy
+        if: steps.compare.outputs.needs_update == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run aur-deploy.yml -f version=${{ steps.compare.outputs.upstream }}
