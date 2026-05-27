@@ -1,7 +1,9 @@
-name: Auto-update
+name: Auto-release
 
-# Checks daily for new upstream rpc-go releases.
-# When a newer version exists: bumps PKGBUILD + .SRCINFO, commits, pushes to AUR.
+# Tracks upstream device-management-toolkit/rpc-go.
+# Cron: daily check. Push: re-check on every main push.
+# When upstream tag != PKGBUILD pkgver: bump PKGBUILD + .SRCINFO, commit, tag v<ver>, push.
+# The tag push then triggers aur-deploy.yml.
 
 on:
   schedule:
@@ -10,13 +12,17 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
-  check-and-publish:
-    name: Check upstream and publish
+  release:
+    if: "github.actor != '88plug-bot' && !contains(github.event.head_commit.message, '[skip release]')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
+          fetch-depth: 0
           token: ${{ secrets.GH_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Compare upstream vs PKGBUILD
@@ -30,7 +36,7 @@ jobs:
             echo "needs_update=false" >> "$GITHUB_OUTPUT"
             echo "Already at $CURRENT."
           else
-            echo "needs_update=true" >> "$GITHUB_OUTPUT"
+            echo "needs_update=true"  >> "$GITHUB_OUTPUT"
             echo "Upgrade $CURRENT -> $UPSTREAM"
           fi
 
@@ -55,23 +61,14 @@ jobs:
           sed -i "s|releases/download/v.*/rpc_linux_x64|releases/download/v$NEW/rpc_linux_x64|" .SRCINFO
           sed -i "s/sha256sums_x86_64 = .*/sha256sums_x86_64 = $SHA/" .SRCINFO
 
-      - name: Commit bump
+      - name: Commit + tag + push (triggers aur-deploy.yml)
         if: steps.compare.outputs.needs_update == 'true'
         run: |
+          NEW="${{ steps.compare.outputs.upstream }}"
           git config user.name  "88plug-bot"
           git config user.email "andrew@88plug.com"
           git add PKGBUILD .SRCINFO
-          git commit -m "auto: bump to ${{ steps.compare.outputs.upstream }}"
+          git commit -m "auto: bump to $NEW [skip release]"
+          git tag "v$NEW"
           git push origin main
-
-      - name: Publish to AUR
-        if: steps.compare.outputs.needs_update == 'true'
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
-        with:
-          pkgname: rpc-go-bin
-          pkgbuild: PKGBUILD
-          commit_username: 88plug
-          commit_email: andrew@88plug.com
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: "Update to ${{ steps.compare.outputs.upstream }}"
-          force_push: true
+          git push origin "v$NEW"
