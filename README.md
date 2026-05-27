@@ -4,7 +4,8 @@ AUR package for [Intel's `rpc-go`](https://github.com/device-management-toolkit/
 
 [![AUR](https://img.shields.io/aur/version/rpc-go-bin?label=AUR&style=flat-square)](https://aur.archlinux.org/packages/rpc-go-bin)
 [![CI](https://img.shields.io/github/actions/workflow/status/88plug/rpc-go-bin/auto-release.yml?label=auto-release&style=flat-square)](https://github.com/88plug/rpc-go-bin/actions)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square)](https://github.com/device-management-toolkit/rpc-go/blob/main/LICENSE)
+[![Binary: Apache-2.0](https://img.shields.io/badge/binary-Apache--2.0-green?style=flat-square)](https://github.com/device-management-toolkit/rpc-go/blob/main/LICENSE)
+[![Packaging: FSL-1.1-ALv2](https://img.shields.io/badge/packaging-FSL--1.1--ALv2-blue?style=flat-square)](LICENSE.md)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/88plug/rpc-go-bin)
 
 ## Install
