@@ -1,0 +1,19 @@
+rpc-go-bin (AUR packaging)
+Copyright (c) 2026 Andrew Mello <andrew@88plug.com>
+
+The packaging in this repository (PKGBUILD, workflows, README) is licensed
+under MIT — see LICENSE.
+
+---
+
+Upstream binary attribution
+----------------------------
+
+This package distributes the pre-built `rpc-go` binary from Intel's Device
+Management Toolkit, which is licensed under Apache License 2.0:
+
+  https://github.com/device-management-toolkit/rpc-go/blob/main/LICENSE
+
+The Apache-2.0 terms apply to the binary itself, independent of this MIT
+packaging. The Apache 2.0 license is included with the upstream binary
+and is also available at https://www.apache.org/licenses/LICENSE-2.0
