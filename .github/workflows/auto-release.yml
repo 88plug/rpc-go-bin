@@ -46,19 +46,27 @@ jobs:
           SHA=$(curl -sL "https://github.com/device-management-toolkit/rpc-go/releases/download/v${{ steps.compare.outputs.upstream }}/rpc_linux_x64.tar.gz" | sha256sum | awk '{print $1}')
           echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
 
-      - name: Update PKGBUILD and .SRCINFO
+      - name: Patch PKGBUILD (pkgver / pkgrel / sha256sums / source URL)
         if: steps.compare.outputs.needs_update == 'true'
         run: |
           NEW="${{ steps.compare.outputs.upstream }}"
+          OLD="${{ steps.compare.outputs.current }}"
           SHA="${{ steps.sha.outputs.sha256 }}"
           sed -i "s/^pkgver=.*/pkgver=$NEW/" PKGBUILD
-          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
-          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=('$SHA')/" PKGBUILD
-          sed -i "s/pkgver = .*/pkgver = $NEW/" .SRCINFO
-          sed -i "s/pkgrel = .*/pkgrel = 1/" .SRCINFO
-          sed -i "s|rpc_linux_x64-.*.tar.gz|rpc_linux_x64-$NEW.tar.gz|" .SRCINFO
-          sed -i "s|releases/download/v.*/rpc_linux_x64|releases/download/v$NEW/rpc_linux_x64|" .SRCINFO
-          sed -i "s/sha256sums_x86_64 = .*/sha256sums_x86_64 = $SHA/" .SRCINFO
+          sed -i "s/^pkgrel=.*/pkgrel=1/"     PKGBUILD
+          sed -i "s/^sha256sums_x86_64=.*/sha256sums_x86_64=('$SHA')/" PKGBUILD
+          # Bump version-bearing strings inside source array (works for any layout that uses v$OLD)
+          sed -i "s|v${OLD}/|v${NEW}/|g" PKGBUILD
+          sed -i "s|rpc_linux_x64-${OLD}\.tar\.gz|rpc_linux_x64-${NEW}.tar.gz|g" PKGBUILD
+
+      - name: Regenerate .SRCINFO via canonical makepkg
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          docker run --rm -v "$PWD":/work -w /work archlinux:latest bash -c '
+            pacman -Sy --noconfirm base-devel >/dev/null
+            useradd -m b && chown -R b .
+            su b -c "makepkg --printsrcinfo" > .SRCINFO
+          '
 
       - name: Commit + tag + push
         if: steps.compare.outputs.needs_update == 'true'
